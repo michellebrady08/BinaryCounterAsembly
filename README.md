@@ -28,18 +28,17 @@ int main(){
 		speed = 1;
 		mode = 0;
 
-    while ()
-    {
+    while (){
         delay = check_speed();
-				if(mode != 0){
-						counter ++;
-		    }
-				else{
-						counter --;
-				}
-				output(counter);
-				wait(delay);	
+		if(mode != 0){
+			counter ++;
 		}
+		else{
+			counter --;
+		}
+		output(counter);
+		wait(delay);	
+	}
 return 0;
 }
 ```
@@ -52,10 +51,10 @@ la función Systick_initialize() va a configurar la interrupción de SysTick, qu
 
 ```c
 void SysTick_Initialize(){
-			Systick->CTRL = 0;
-			SysTick->LOAD = 1000;
-			SysTick->VAL = 0;
-			Systick->CRL = 7;
+	Systick->CTRL = 0;
+	SysTick->LOAD = 1000;
+	SysTick->VAL = 0;
+	Systick->CRL = 7;
 }
 ```
 
@@ -65,15 +64,15 @@ Laa función de EXTIx_Initialize() contiene la configuración para las interrupc
 
 ```c
 void EXTIx_Initialize(){
-		RCC->APB2ENR |= 1;
-		AFIO->EXTICR1 = 0;
-		EFIO->FTST = 0;
-		// Se usa un 9 para habilitar el Rising Edge en los bits 1001 (0 y 3)
-		EFIO->RTST = 9;
-		EFIO->IMR = 9;
+	RCC->APB2ENR |= 1;
+	AFIO->EXTICR1 = 0;
+	EFIO->FTST = 0;
+	// Se usa un 9 para habilitar el Rising Edge en los bits 1001 (0 y 3)
+	EFIO->RTST = 9;
+	EFIO->IMR = 9;
 
-		// Para activar la interrupción se encienden los bits 0010 0100 0000
-		NVIC->ISER0 = 576;
+	// Para activar la interrupción se encienden los bits 0010 0100 0000
+	NVIC->ISER0 = 576;
 }
 ```
 
@@ -83,7 +82,7 @@ Función sencilla solo decrementa el valor de delay, para generar la espera de 1
 
 ```c
 void Systick_Handler(){
-		delay --;
+	delay --;
 }
 ```
 
@@ -93,7 +92,7 @@ Este archivo contiene la función del delay, es muy sencilla, recibe el valor de
 
 ```c
 void Delay(int delay){
-		while(delay != 0);
+	while(delay != 0);
 }
 ```
 
@@ -103,18 +102,18 @@ Este archivo almacena la función que checa la velocidad que se solicita para el
 
 ```c
 int check_speed(int speed){
-		if speed ==1;
-				return 1000; 
-		else if speed == 2;
-				return 500;
-		else if speed == 4;
-				return 250;
-		else if speed == 8;
-				return 125;
-		else{ 
-				speed = 1;
-				return 1000; 
-		}
+	if speed ==1;
+		return 1000; 
+	else if speed == 2;
+		return 500;
+	else if speed == 4;
+		return 250;
+	else if speed == 8;
+		return 125;
+	else{ 
+		speed = 1;
+		return 1000; 
+	}
 }
 ```
 
@@ -145,12 +144,12 @@ Esta función es la que ocurre al presionar el pin B0, la lógica de este botón
 
 ```c
 void EXTI0_Handler(){
-		if(speed != 8){
-				speed = speed*2;	
-		}
-		else{
-				speed = 1;
-		}
+	if(speed != 8){
+		speed = speed*2;	
+	}
+	else{
+		speed = 1;
+	}
 }
 ```
 
