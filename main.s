@@ -10,6 +10,7 @@
 .include "afio_map.inc"
 .include "exti_map.inc"
 .include "nvic_reg_map.inc"
+.include "systick_map.inc"
 
 .extern check_speed
 .extern SysTick_Handler
