@@ -12,7 +12,6 @@
 .include "nvic_reg_map.inc"
 
 .extern check_speed
-.extern SysTick_Initialize
 .extern SysTick_Handler
 .extern delay
 .extern EXTI0_3_Handler
@@ -22,6 +21,7 @@
 .align 1
 .syntax unified
 .thumb
+
 .global __main
 
 # r4 -> counter
@@ -39,32 +39,8 @@ __main:
         mov     r3, 0x8                                @ loads 8 in r1 to enable clock in port B (IOPB bit)
         str     r3, [r0, RCC_APB2ENR_OFFSET]                                @ M[RCC_APB2ENR] gets 8
 
-        #ENABLE SYSCFG clock
-        ldr     r0, =RCC_BASE
-        ldr     r1, [r0, RCC_APB2ENR_OFFSET] 
-        orr     r1, r1, #1
-        str     r1, [r0, RCC_APB2ENR_OFFSET]
-
-        #SELECT PB.3 AS THE TRIGGER SOURCE OF EXTI 3
-        ldr     r0, =AFIO_BASE
-        eor     r1, r1
-        str     r1, [r0, AFIO_EXTICR1_OFFSET]
-
-        #DISABLE RISING EDGE TRIGGER FOR EXTI 0 and 3
-        ldr     r0, =EXTI_BASE
-        eor     r1, r1               
-        str     r1, [r0, EXTI_FTST_OFFSET]
-        #DISABLE FALLING EDGE TRIGGER FOR EXTI 0 and 3
-        ldr     r1, =9
-        str     r1, [r0, EXTI_RTST_OFFSET]
-        str     r1, [r0, EXTI_IMR_OFFSET]
-
-        #ENABLE EXTI 0 and 3 INTERUPT
-        ldr     r0, =NVIC_BASE
-        orr     r1, r1, #576                    @ store a 1 on the enable bit for the exti interrupt 3
-        str     r1, [r0, NVIC_ISER0_OFFSET] 
-
-        bl      SysTick_Initialize
+        b       EXTIx_Initialize
+        b       SysTick_Initialize
 
         # set pin 8-15 as digital output
         ldr     r0, =GPIOB_BASE                      @ moves address of GPIOB_CRH register to r0
@@ -102,7 +78,72 @@ _show:  mov     r1, r4
         ldr     r0, =GPIOB_BASE
         str     r1, [r0, GPIOx_ODR_OFFSET]
         ## wait (delay);
-        b       delay 
+        bl       delay 
 
         b       loop
 
+
+SysTick_Initialize:
+        #prologue
+        push    {r7} 
+        sub     sp, sp, #4 
+        add     r7, sp, #0 
+# SYSTICK CONFIG
+        # Set SysTick_CRL to disable SysTick IRQ and SysTick timer
+        ldr     r0, =SYSTICK_BASE
+        # Disable SysTick IRQ and SysTick counter, select external clock
+        mov     r1, 0x0
+        str     r1, [r0, STK_LOAD_OFFSET]
+        # Specify the number of clock cycles between two interrupts
+        ldr     r5, =1000000                @ Change it based on interrupt interval
+        str     r5, [r0, STK_LOAD_OFFSET]   @ Save to SysTick reload register
+        # Clear SysTick current value register (SysTick_VAL)
+        mov     r1, #0
+        str     r1, [r0, STK_VAL_OFFSET]    @ Write 0 to SysTick value register
+
+        # Set SysTick_CRL to enable Systick timer and SysTick interrupt
+        ldr     r1, [r0, STK_CTRL_OFFSET]
+        orr     r1, r1, 3
+        str     r1, [r0, STK_CTRL_OFFSET]
+
+        # epilogue 
+        adds    r7, r7, #4
+        mov     sp, r7
+        pop	{r7}
+        bx      lr 
+
+EXTIx_Initialize:
+        #prologue
+        push    {r7} 
+        sub     sp, sp, #4 
+        add     r7, sp, #0 
+        #ENABLE SYSCFG clock
+        ldr     r0, =RCC_BASE
+        ldr     r1, [r0, RCC_APB2ENR_OFFSET] 
+        orr     r1, r1, #1
+        str     r1, [r0, RCC_APB2ENR_OFFSET]
+
+        #SELECT PB.3 AS THE TRIGGER SOURCE OF EXTI 3
+        ldr     r0, =AFIO_BASE
+        eor     r1, r1
+        str     r1, [r0, AFIO_EXTICR1_OFFSET]
+
+        #DISABLE RISING EDGE TRIGGER FOR EXTI 0 and 3
+        ldr     r0, =EXTI_BASE
+        eor     r1, r1               
+        str     r1, [r0, EXTI_FTST_OFFSET]
+        #DISABLE FALLING EDGE TRIGGER FOR EXTI 0 and 3
+        ldr     r1, =9
+        str     r1, [r0, EXTI_RTST_OFFSET]
+        str     r1, [r0, EXTI_IMR_OFFSET]
+
+        #ENABLE EXTI 0 and 3 INTERUPT
+        ldr     r0, =NVIC_BASE
+        orr     r1, r1, #576                    @ store a 1 on the enable bit for the exti interrupt 3
+        str     r1, [r0, NVIC_ISER0_OFFSET] 
+        # epilogue 
+        adds    r7, r7, #4
+        mov     sp, r7
+        pop	{r7}
+        bx      lr 
+        
