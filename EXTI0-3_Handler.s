@@ -28,9 +28,7 @@ EXTI0_3_Handler:
 .thumb
 .global EXTI0_Handler
 EXTI0_Handler:
-        #ldr r0, =EXTI_BASE
-        #ldr r1, =1
-        #str r1, [r0, EXTI_PR_OFFSET]
+        
         ## if(speed != 8)
         mov     r1, r5
         ldr     r2, =8
@@ -45,9 +43,9 @@ x1:
         ## speed = 1;
         ldr     r5, =1
 end:
-        #ldr r0, =NVIC_BASE
-        #ldr r1, =1
-        #str r1, [r0, NVIC_ISPR0_OFFSET]
+        ldr r0, =EXTI_BASE
+        ldr r1, =0x1
+        str r1, [r0, EXTI_PR_OFFSET]
         bx      lr
  .size   EXTI0_Handler, .-EXTI0_Handler
 
@@ -58,15 +56,14 @@ end:
 .thumb
 .global EXTI3_Handler
 EXTI3_Handler:
-        #ldr r0, =EXTI_BASE
-        #ldr r1, =8
-        #str r1, [r0, EXTI_PR_OFFSET]
+        
         mov     r1, r6
         eor     r1, 1
+        and     r1, 0x1
         mov     r6, r1
-        #ldr r0, =NVIC_BASE
-        #ldr r1, =8
-        #str r1, [r0, NVIC_ISPR0_OFFSET]
+        ldr r0, =EXTI_BASE
+        ldr r1, =8
+        str r1, [r0, EXTI_PR_OFFSET]
         bx      lr 
 
 .size   EXTI3_Handler, .-EXTI3_Handler
