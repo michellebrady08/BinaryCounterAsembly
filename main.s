@@ -118,11 +118,7 @@ EXTIx_Initialize:
         push    {r7} 
         sub     sp, sp, #4 
         add     r7, sp, #0 
-        #ENABLE SYSCFG clock
-        ldr     r0, =RCC_BASE
-        ldr     r1, [r0, RCC_APB2ENR_OFFSET] 
-        orr     r1, r1, #1
-        str     r1, [r0, RCC_APB2ENR_OFFSET]
+      
 
         #SELECT PB.3 AS THE TRIGGER SOURCE OF EXTI 3
         ldr     r0, =AFIO_BASE
@@ -135,7 +131,7 @@ EXTIx_Initialize:
         str     r1, [r0, EXTI_FTST_OFFSET]
         #DISABLE FALLING EDGE TRIGGER FOR EXTI 0 and 3
         ldr     r1, =9
-        str     r1, [r0, EXTI_RTST_OFFSET]
+        str     r1, [r0, EXTI_FTST_OFFSET]
         str     r1, [r0, EXTI_IMR_OFFSET]
 
         #ENABLE EXTI 0 and 3 INTERUPT
