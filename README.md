@@ -160,5 +160,6 @@ Está función es la que ocurre al presionar el pin B3, la lógica de esta inter
 ```c
 void EXTI3_Handler(){
 	mode = !mode;
+	mode &= 1;
 }
 ```
