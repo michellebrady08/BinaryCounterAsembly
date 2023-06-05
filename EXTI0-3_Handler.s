@@ -60,16 +60,9 @@ EXTI3_Handler:
 
         ## if (mode!=0)
         mov     r1, r6
-        cmp     r1, 0x0
-        bne     _positive
-        mov     r1, 0x0
-        b       _end
-_positive:
-        mov     r1, 0x1
-_end:
-        mov     r6, r1
+        eor     r1, r1, 1
+        and     r1, r1, 0x1  
         ldr     r0, =EXTI_BASE
-        #ldr     r1, =8          @0x240
         ldr     r2, [r0, EXTI_PR_OFFSET]
         orr     r2, r2, 0x200             @ Clear the EXTI3 pending flag
         str     r2, [r0, EXTI_PR_OFFSET]
