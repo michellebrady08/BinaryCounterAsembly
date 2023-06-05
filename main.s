@@ -16,7 +16,6 @@
 .extern SysTick_Handler
 .extern delay
 .extern EXTI0_3_Handler
-#.extern EXTI0_Handler
 
 .section .text
 .align 1
