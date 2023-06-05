@@ -62,6 +62,7 @@ EXTI3_Handler:
         mov     r1, r6
         eor     r1, r1, 1
         and     r1, r1, 0x1  
+        mov     r6, r1
         ldr     r0, =EXTI_BASE
         ldr     r2, [r0, EXTI_PR_OFFSET]
         orr     r2, r2, 0x200             @ Clear the EXTI3 pending flag
