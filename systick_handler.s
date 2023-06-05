@@ -12,7 +12,7 @@
 
 SysTick_Handler:
 # NVIC automaticamente apila 8 registros: r0-r3, r12, lr, psr y pc
-    # First we check the mode value
+   
         sub     r10, r10, #1
         bx lr   
 
