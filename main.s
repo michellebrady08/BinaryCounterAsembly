@@ -31,7 +31,7 @@
 __main:
 
         push	{r7, lr}                                @ create frame
-	sub	sp, sp, #8
+	sub	sp, sp, #16
 	add	r7, sp, #0  
 
         # enabling clock in port B
@@ -54,15 +54,18 @@ __main:
         mov     r3, #0
         str     r3, [r0, GPIOx_ODR_OFFSET]
 
-        ldr     r4, =0x0                              @ counter initial value 
-        ldr     r5, =0x2
-        ldr     r6, =0x0
+        mov     r4, 0x0  
+	str     r4, [r7, #4]@ counter initial value 
+        mov     r5, 0x1
+	str     r5, [r7, #8]
+        mov     r6, 0x0
+	str     r6, [r7, #12]
         
 
 loop:
         ## Delay = check_speed();
         bl       check_speed
-        mov     r10, r0
+        str      r0, [r7, #16]
         ## if mode ==0;
         ldr     r1, =0
         cmp     r6, r1
@@ -78,6 +81,7 @@ _show:  mov     r1, r4
         ldr     r0, =GPIOB_BASE
         str     r1, [r0, GPIOx_ODR_OFFSET]
         ## wait (delay);
+        ldr      r0, [r7, #16]
         bl       delay 
 
         b       loop
