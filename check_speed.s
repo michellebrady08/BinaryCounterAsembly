@@ -19,33 +19,34 @@ check_speed:
         ldr     r1, =0x1
         cmp     r5, r1
         bne     L1
-        ldr     r0, =100000
+        ldr     r0, =10000
         b       epilogue
 L1:     ## if speed==2
         ldr     r1, =0x2
         cmp     r5, r1
         bne     L2
-        ldr     r0, =50000
+        ldr     r0, =5000
         b       epilogue
 L2:     ## if speed==4
         ldr     r1, =0x4
         cmp     r5, r1
         bne     L3
-        ldr     r0, =25000
+        ldr     r0, =2500
         b       epilogue
 L3:     ## if speed==8
         ldr     r1, =0x8
         cmp     r5, r1
         bne     L4
-        ldr     r0, =12500
+        ldr     r0, =1250
         b       epilogue
 L4:     ## else
-        ldr     r0, =100000
+        ldr     r0, =10000
 epilogue:
         adds    r7, r7, #4
         mov     sp, r7
         pop	{r7}
         bx      lr
 .size   check_speed, .-check_speed
+
 
 
