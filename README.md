@@ -58,6 +58,26 @@ void SysTick_Initialize(){
 }
 ```
 
+Este código configura el registro de control del temporizador SysTick en un microcontrolador. 
+
+Sigue la siguiente lógica:
+
+1. Se carga la dirección base de SysTick en el registro r0 utilizando la instrucción `ldr`. La dirección base se refiere a la ubicación de los registros de control del temporizador SysTick en la memoria.
+
+2. Se almacena el valor 0x0 en la dirección [r0, STK_CTRL_OFFSET]. Esta operación deshabilita la interrupción SysTick y el contador SysTick, y selecciona el reloj externo como fuente de temporización.
+
+3. Se carga el valor 1000 en el registro r5 utilizando la instrucción `ldr`. Este valor representa el número de ciclos de reloj entre dos interrupciones de SysTick. Puede ajustarse según el intervalo de interrupción deseado.
+
+4. Se almacena el valor 1000 en la dirección [r0, STK_LOAD_OFFSET]. Este valor se guarda en el registro de recarga SysTick y especifica el número de ciclos de reloj entre dos interrupciones.
+
+5. Se almacena el valor 0 en la dirección [r0, STK_VAL_OFFSET]. Esta operación escribe el valor 0 en el registro de valor actual de SysTick, lo que significa que el contador SysTick comenzará desde cero cuando se habilite.
+
+6. Se realiza una operación OR entre el valor actual del registro de control y 7 (0b111) utilizando la instrucción `orr`. Esto establece los bits de enable y interrupt en 1, lo que habilita el temporizador SysTick y las interrupciones de SysTick.
+
+7. Se almacena el nuevo valor del registro de control en la dirección [r0, STK_CTRL_OFFSET]. Esta operación habilita el temporizador SysTick y las interrupciones de SysTick.
+
+En resumen, el código configura el temporizador SysTick para generar interrupciones periódicas utilizando un intervalo especificado. Deshabilita inicialmente el temporizador y las interrupciones, configura el intervalo de tiempo deseado, borra el contador actual y luego habilita el temporizador y las interrupciones.
+
 ### `EXTIx_Initialize();`
 
 Laa función de EXTIx_Initialize() contiene la configuración para las interrupciones externas EXTI0 y EXTI3.
@@ -75,6 +95,30 @@ void EXTIx_Initialize(){
 	NVIC->ISER0 = 576;
 }
 ```
+
+Este código configura las fuentes de disparo (trigger sources) y los bordes de activación/desactivación (rising/falling edges) para las interrupciones EXTI 0 y EXTI 3 en un microcontrolador. 
+
+Sigue la siguiente lógica:
+
+1. Se carga la dirección base de AFIO (Alternate Function I/O) en el registro r0 utilizando la instrucción `ldr`. AFIO es un bloque en el microcontrolador que permite asignar las funciones de los pines de E/S alternativas.
+
+2. Se almacena el valor de r1 en la dirección [r0, AFIO_EXTICR1_OFFSET]. Este valor configura los bits correspondientes a EXTI 3 y EXTI 0 en el registro AFIO_EXTICR1, seleccionando los pines PB.3 y PB.0 como fuentes de disparo para las interrupciones EXTI 3 y EXTI 0 respectivamente.
+
+3. Se carga la dirección base de EXTI (External Interrupt/Event Controller) en el registro r0 utilizando la instrucción `ldr`.
+
+4. Se realiza una operación XOR exclusiva (eor) entre el registro r1 y sí mismo, lo que establece todos los bits en r1 en 0. Este valor se utiliza para desactivar el disparo de flanco ascendente (rising edge trigger) para las interrupciones EXTI 0 y EXTI 3.
+
+5. Se almacena el valor de r1 en la dirección [r0, EXTI_FTST_OFFSET]. Esta operación deshabilita el disparo de flanco ascendente para las interrupciones EXTI 0 y EXTI 3.
+
+6. Se carga el valor 9 en el registro r1 utilizando la instrucción `ldr`. Este valor representa una máscara de bits que corresponde a los bits de EXTI 0 y EXTI 3 en los registros de activación de flanco descendente (falling edge trigger).
+
+7. Se almacena el valor de r1 en las direcciones [r0, EXTI_RTST_OFFSET] y [r0, EXTI_IMR_OFFSET]. Estas operaciones deshabilitan el disparo de flanco descendente y también deshabilitan la interrupción EXTI 0 y EXTI 3 respectivamente.
+
+8. Se carga la dirección base de NVIC (Nested Vectored Interrupt Controller) en el registro r0 utilizando la instrucción `ldr`. NVIC es un componente en el microcontrolador que maneja las interrupciones.
+
+9. Se realiza una operación OR (orr) entre el valor actual de r1 y 0x240. Esto establece el bit de habilitación (enable bit) en 1 para la interrupción EXTI 3, que se encuentra en el bit 9 del registro NVIC_ISER0 y lo mismo para el EXTI 0.
+
+El código configura las fuentes de disparo y los bordes de activación/desactivación para las interrupciones EXTI 0 y EXTI 3. Establece los pines PB.3 y PB.0 como fuentes de disparo para EXTI 3 y EXTI 0 respectivamente, y habilita la interrupción EXTI 3 y EXTI 0 en el controlador NVIC.
 
 ### Systick_handler.s
 
