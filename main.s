@@ -13,7 +13,7 @@
 .include "systick_map.inc"
 
 .extern SysTick_Handler
-.extern EXTI0_3_Handler
+.extern check_speed
 .extern delay
 
 .section .text
@@ -28,24 +28,23 @@ __main:
 	sub	sp, sp, #16
 	add	r7, sp, #0  
         
-        # enabling clock in port B
+        # enabling clock in port A
         ldr     r0, =RCC_BASE                      @ move 0x40021018 to r0
-        mov     r3, #0x8                                @ loads 8 in r1 to enable clock in port B (IOPB bit)
+        mov     r3, 0x4                                @ loads 8 in r1 to enable clock in port B (IOPB bit)
         str     r3, [r0, RCC_APB2ENR_OFFSET]                                @ M[RCC_APB2ENR] gets 8
         
-        # set pin 8-15 as digital output
-        ldr     r0, =GPIOB_BASE                      @ moves address of GPIOB_CRH register to r0
+        # set pin 0-7 as digital output
+        ldr     r0, =GPIOA_BASE                      @ moves address of GPIOB_CRH register to r0
         ldr     r3, =0x33333333                         @ PB15 output push-pull, max speed 50 MHz
-        str     r3, [r0, GPIOx_CRH_OFFSET]                                @ M[GPIOB_CRH] gets 
+        str     r3, [r0, GPIOx_CRL_OFFSET]                                @ M[GPIOB_CRH] gets 
 
-        # set pin 6-7 as digital input and pin 0 and 3 as digital input
-        ldr     r3, =0x33448448                         @ PB0: input
-        str     r3, [r0, GPIOx_CRL_OFFSET]
+        # set pin 8-9 as digital output and pin 10 and 11 as digital input
+        ldr     r3, =0x44448833                        @ PB0: input
+        str     r3, [r0, GPIOx_CRH_OFFSET]
         # conf
 
         bl      SysTick_Initialize
         bl      EXTIx_Initialize
-
 
         mov     r3, #0
         str     r3, [r0, GPIOx_ODR_OFFSET]
@@ -62,8 +61,7 @@ loop:
         bl      check_speed
         str     r0, [r7, #16]
         ldr     r4, [r7, #4]            @ Load the current value of the variable
-        ldr     r0, =0x0
-        cmp     r6, r0
+        cmp     r6, 0x0
         bne     _sub
         add     r4, r4, #1          @ Increment the value by 1 (or adjust as needed)
         str     r4, [r7, #4]
@@ -74,8 +72,7 @@ _sub:
         
 _end:   
         ldr     r1, [r7, #4]
-        lsls    r1, r1, #6
-        ldr     r0, =GPIOB_BASE
+        ldr     r0, =GPIOA_BASE
         str     r1, [r0, GPIOx_ODR_OFFSET]
 
         ldr     r0, [r7, #16]
@@ -121,29 +118,28 @@ EXTIx_Initialize:
        
         #SELECT PB.3 AS THE TRIGGER SOURCE OF EXTI 3
         ldr     r0, =AFIO_BASE
-        #eor     r1, r1
-        #ldr     r1, =0x1001
-        str     r1, [r0, AFIO_EXTICR1_OFFSET]
+        eor     r1, r1
+        str     r1, [r0, AFIO_EXTICR3_OFFSET]
 
         #DISABLE RISING EDGE TRIGGER FOR EXTI 0 and 3
         ldr     r0, =EXTI_BASE
-        #mov     r1, 0x1
         eor     r1, r1               
         str     r1, [r0, EXTI_FTST_OFFSET]
         #DISABLE FALLING EDGE TRIGGER FOR EXTI 0 and 3
-        ldr     r1, =9
+        ldr     r1, =0xC00
         str     r1, [r0, EXTI_RTST_OFFSET]
         str     r1, [r0, EXTI_IMR_OFFSET]
 
         #ENABLE EXTI 0 and 3 INTERUPT
         ldr     r0, =NVIC_BASE
-        orr     r1, r1, 0x240                    @ store a 1 on the enable bit for the exti interrupt 3
-        str     r1, [r0, NVIC_ISER0_OFFSET] 
+        orr     r1, r1, 0x100                    @ store a 1 on the enable bit for the exti interrupt 3
+        str     r1, [r0, NVIC_ISER1_OFFSET] 
         # epilogue 
         adds    r7, r7, #4
         mov     sp, r7
         pop	{r7}
         bx      lr 
+
 
 
 
