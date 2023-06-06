@@ -14,6 +14,8 @@ El objetivo de está práctica es el de diseñar un contador binario de 10 bits 
 
 ### main.s
 
+El archivo "main.s" contiene la lógica principal del programa, donde se realizan las configuraciones de los periféricos, la inicialización de las variables, el manejo de la velocidad y el modo de conteo, y la visualización del valor actual del contador en los ledes. También se hace uso de las funciones "Systick_Initialize()" para configurar el temporizador SysTick y "check_speed()" para determinar el retardo en función de la velocidad seleccionada.
+
 Contiene las configuraciones de los perfiféricos, la inicialización de las variables, llamado a la función `check_speed()`,  la logica de incremento y decremento y el llamado a la función `delay()`
 
 En C se puede apreciar de la siguiente forma
@@ -84,43 +86,47 @@ Laa función de EXTIx_Initialize() contiene la configuración para las interrupc
 
 ```c
 void EXTIx_Initialize(){
-	RCC->APB2ENR |= 1;
-	AFIO->EXTICR1 = 0;
-	EFIO->FTST = 0;
-	// Se usa un 9 para habilitar el Rising Edge en los bits 1001 (0 y 3)
-	EFIO->RTST = 9;
-	EFIO->IMR = 9;
+	AFIO->EXTICR3 = 0x0;
+	EFIO->FTST = 0x0;
+	// Se usa un 0xC00 para habilitar el Rising Edge en los bits que pertenecen al 11 y 10 
+	EFIO->RTST = 0xC00;
+	EFIO->IMR = 0xC00;
 
-	// Para activar la interrupción se encienden los bits 0010 0100 0000
-	NVIC->ISER0 = 576;
+	// Para activar la interrupción EXTI15-10 se enciende el bit en la posición 8
+	NVIC->ISER1 = 0x100;
 }
 ```
+<img width="703" alt="image" src="https://github.com/michellebrady08/Laboratorio6/assets/110513243/d92def84-d1a0-47e0-9e74-6fa477f061ab">
 
-Este código configura las fuentes de disparo (trigger sources) y los bordes de activación/desactivación (rising/falling edges) para las interrupciones EXTI 0 y EXTI 3 en un microcontrolador. 
+```
+
+Este código configura las fuentes de disparo (trigger sources) y los bordes de activación/desactivación (rising/falling edges) para las interrupciones EXTI 10 y EXTI 11 en un microcontrolador. 
 
 Sigue la siguiente lógica:
 
 1. Se carga la dirección base de AFIO (Alternate Function I/O) en el registro r0 utilizando la instrucción `ldr`. AFIO es un bloque en el microcontrolador que permite asignar las funciones de los pines de E/S alternativas.
 
-2. Se almacena el valor de r1 en la dirección [r0, AFIO_EXTICR1_OFFSET]. Este valor configura los bits correspondientes a EXTI 3 y EXTI 0 en el registro AFIO_EXTICR1, seleccionando los pines PB.3 y PB.0 como fuentes de disparo para las interrupciones EXTI 3 y EXTI 0 respectivamente.
+2. Se almacena el valor de r1 en la dirección [r0, AFIO_EXTICR1_OFFSET]. Este valor configura los bits correspondientes a EXTI 11 y EXTI 10 en el registro AFIO_EXTICR3, seleccionando los pines PA.10 y PA.11 como fuentes de disparo para las interrupciones EXTI 11 y EXTI 10 respectivamente.
 
 3. Se carga la dirección base de EXTI (External Interrupt/Event Controller) en el registro r0 utilizando la instrucción `ldr`.
 
-4. Se realiza una operación XOR exclusiva (eor) entre el registro r1 y sí mismo, lo que establece todos los bits en r1 en 0. Este valor se utiliza para desactivar el disparo de flanco ascendente (rising edge trigger) para las interrupciones EXTI 0 y EXTI 3.
+4. Se realiza una operación XOR exclusiva (eor) entre el registro r1 y sí mismo, lo que establece todos los bits en r1 en 0. Este valor se utiliza para desactivar el disparo de flanco ascendente (rising edge trigger) para las interrupciones EXTI 10 y EXTI 11.
 
-5. Se almacena el valor de r1 en la dirección [r0, EXTI_FTST_OFFSET]. Esta operación deshabilita el disparo de flanco ascendente para las interrupciones EXTI 0 y EXTI 3.
+5. Se almacena el valor de r1 en la dirección [r0, EXTI_FTST_OFFSET]. Esta operación deshabilita el disparo de flanco ascendente para las interrupciones EXTI 10 y EXTI 11.
 
-6. Se carga el valor 9 en el registro r1 utilizando la instrucción `ldr`. Este valor representa una máscara de bits que corresponde a los bits de EXTI 0 y EXTI 3 en los registros de activación de flanco descendente (falling edge trigger).
+6. Se carga el valor 0xC00 en el registro r1 utilizando la instrucción `ldr`. Este valor representa una máscara de bits que corresponde a los bits de EXTI 10 y EXTI 11 en los registros de activación de flanco descendente (falling edge trigger).
 
-7. Se almacena el valor de r1 en las direcciones [r0, EXTI_RTST_OFFSET] y [r0, EXTI_IMR_OFFSET]. Estas operaciones deshabilitan el disparo de flanco descendente y también deshabilitan la interrupción EXTI 0 y EXTI 3 respectivamente.
+7. Se almacena el valor de r1 en las direcciones [r0, EXTI_RTST_OFFSET] y [r0, EXTI_IMR_OFFSET]. Estas operaciones deshabilitan el disparo de flanco descendente y también deshabilitan la interrupción EXTI 10 y EXTI 11 respectivamente.
 
 8. Se carga la dirección base de NVIC (Nested Vectored Interrupt Controller) en el registro r0 utilizando la instrucción `ldr`. NVIC es un componente en el microcontrolador que maneja las interrupciones.
 
-9. Se realiza una operación OR (orr) entre el valor actual de r1 y 0x240. Esto establece el bit de habilitación (enable bit) en 1 para la interrupción EXTI 3, que se encuentra en el bit 9 del registro NVIC_ISER0 y lo mismo para el EXTI 0.
+9. Se realiza una operación OR (orr) entre el valor actual de r1 y 0x100. Esto establece el bit de habilitación (enable bit) en 1 para la interrupción EXTI 15-10, que se encuentra en el bit 8 del registro NVIC_ISER1 y lo mismo para el EXTI 0.
 
-El código configura las fuentes de disparo y los bordes de activación/desactivación para las interrupciones EXTI 0 y EXTI 3. Establece los pines PB.3 y PB.0 como fuentes de disparo para EXTI 3 y EXTI 0 respectivamente, y habilita la interrupción EXTI 3 y EXTI 0 en el controlador NVIC.
+El código configura las fuentes de disparo y los bordes de activación/desactivación para las interrupciones EXTI 10 y EXTI 11. Establece los pines PA.11 y PA.10 como fuentes de disparo para EXTI 11 y EXTI 10 respectivamente, y habilita la interrupción EXTI 11 y EXTI 10 en el controlador NVIC.
 
 ### Systick_handler.s
+
+Las funciones "Systick_Handler()" y "Delay()" se encargan de generar la espera de 1 segundo mediante el decremento de una variable de retardo.
 
 Función sencilla solo decrementa el valor de delay, para generar la espera de 1 segundo.
 
@@ -161,33 +167,35 @@ int check_speed(int speed){
 }
 ```
 
-### EXTI0-3_Handler.s
+### EXTI10-11_Handler.s
 
-Este archivo almacena 3 funciones, la función `EXTI0_3_Handler();`, y las dos funciones que manejan cada respectiva interrupción:
+Este archivo almacena 3 funciones, la función `EXTI15_10_Handler();`, y las dos funciones que manejan cada respectiva interrupción:
 
-### `**EXTI0_3_Handler();**`
+Contiene las funciones que se ejecutan cuando se producen las interrupciones EXTI 10 y EXTI 11. La función "EXTI15_10_Handler()" determina cuál de las dos interrupciones se ejecutó y llama a la función correspondiente. La función "EXTI10_Handler()" altera la velocidad del contador al presionar un botón, mientras que la función "EXTI11_Handler()" cambia el modo de conteo.
+
+### EXTI15_10_Handler();
 
 Esta funcion determina que interrupción se va a ejecutar leyendo los valores almacenados el los pines que se configuraron para la interrupción, estps pines están conectados a un push button.
 
 ```c
-void EXTI0_3_Handler(void) {
+void EXTI15_10_Handler(void) {
 
-    if (EXTI_PR_PR0 != 0) {
+    if (EXTI_PR_PR10 != 0) {
         // EXTI0 interrupt occurred
-        EXTI0_Handler();
-    } else if ( EXTI_PR_PR3 != 0) {
-        // EXTI3 interrupt occurred
-        EXTI3_Handler();
+        EXTI10_Handler();
+    } else if ( EXTI_PR_PR11 != 0) {
+        // EXTI11 interrupt occurred
+        EXTI11_Handler();
     }
 }
 ```
 
-### `EXTI0_Handler();`
+### `EXTI10_Handler();`
 
-Esta función es la que ocurre al presionar el pin B0, la lógica de este botón es la de alterar la velocidad de nuestro contador cada que se presiona el botón.
+Esta función es la que ocurre al presionar el pin A10, la lógica de este botón es la de alterar la velocidad de nuestro contador cada que se presiona el botón.
 
 ```c
-void EXTI0_Handler(){
+void EXTI10_Handler(){
 	if(speed != 8){
 		speed = speed*2;	
 	}
@@ -197,13 +205,18 @@ void EXTI0_Handler(){
 }
 ```
 
-### `EXTI3_Handler();`
+### `EXTI11_Handler();`
 
-Está función es la que ocurre al presionar el pin B3, la lógica de esta interrupción es la de cambiar el modo.
+Está función es la que ocurre al presionar el pin A11, la lógica de esta interrupción es la de cambiar el modo.
 
 ```c
-void EXTI3_Handler(){
+void EXTI11_Handler(){
 	mode = !mode;
 	mode &= 1;
 }
 ```
+
+## Conclusión
+
+El archivo del proyecto muestra la implementación de un contador binario de 10 bits con funcionalidades adicionales de cambio de modo y ajuste de velocidad. El código proporcionado configura los periféricos, maneja las interrupciones y controla el contador, brindando una solución completa para el objetivo establecido en la práctica de laboratorio.
+
