@@ -1,10 +1,8 @@
-# Laboratorio 6
 
-## Práctica de laboratorio N. 6
+## Contador binario de 10 bits
 
 Creado por: Andrea Michelle Brady Chávez 
 
-Matrícula: 2213026363
 
 ### Objetivo
 
